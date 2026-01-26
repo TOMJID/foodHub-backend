@@ -8,5 +8,6 @@
     "skipLibCheck": true,
     "esModuleInterop": true
   },
+  "include": ["src/**/*", "prisma/**/*"],
   "exclude": ["node_modules", "dist", "generated/prisma"]
 }
