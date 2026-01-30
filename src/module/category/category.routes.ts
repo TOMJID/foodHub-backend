@@ -8,17 +8,9 @@ const router = Router();
 router.post("/", auth(UserRole.ADMIN), CategoryController.createCategory);
 
 //? get all categories
-router.get(
-  "/",
-  auth(UserRole.ADMIN, UserRole.PROVIDER),
-  CategoryController.getAllCategories,
-);
+router.get("/", CategoryController.getAllCategories);
 
 //? get category by id
-router.get(
-  "/:categoryId",
-  auth(UserRole.ADMIN, UserRole.PROVIDER),
-  CategoryController.getCategoryById,
-);
+router.get("/:categoryId", CategoryController.getCategoryById);
 
 export const categoryRoutes = router;

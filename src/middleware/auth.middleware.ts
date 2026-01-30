@@ -69,9 +69,9 @@ const auth = (...roles: UserRole[]) => {
       };
 
       if (roles.length && !roles.includes(req.user.role as UserRole)) {
-        res.status(404).json({
+        res.status(403).json({
           success: false,
-          message: "only Admin has the permission to access this resources.",
+          message: `Forbidden: You do not have the required permissions (${roles.join(", ")}) to access this resource.`,
         });
         return;
       }

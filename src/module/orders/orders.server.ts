@@ -29,6 +29,13 @@ const createOrder = async (data: ICreateOrderInput) => {
       if (!meal.isAvailable)
         throw new Error(`Meal ${meal.name} is not available`);
 
+      //? Verify that the meal belongs to the requested provider
+      if (meal.providerId !== data.providerId) {
+        throw new Error(
+          `Meal ${meal.name} does not belong to the selected provider`,
+        );
+      }
+
       const price = Number(meal.price);
       total += price * item.quantity;
 

@@ -5,6 +5,14 @@ import { ProviderProfileUncheckedCreateInput } from "../../../generated/prisma/m
 const createProviderProfile = async (
   data: ProviderProfileUncheckedCreateInput,
 ) => {
+  const existingProfile = await prisma.providerProfile.findUnique({
+    where: { userId: data.userId },
+  });
+
+  if (existingProfile) {
+    throw new Error("You already have a provider profile.");
+  }
+
   return await prisma.$transaction(async (timeline) => {
     const profile = await timeline.providerProfile.create({
       data,
