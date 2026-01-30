@@ -18,6 +18,7 @@ declare global {
         name: string;
         role: string;
         emailVerified: boolean;
+        isActive: boolean;
       };
     }
   }
@@ -47,6 +48,16 @@ const auth = (...roles: UserRole[]) => {
         return;
       }
 
+      //? account status check (Suspend/Activate)
+      if (session.user.isActive === false) {
+        res.status(403).json({
+          success: false,
+          message:
+            "Your account has been suspended. Please contact administration.",
+        });
+        return;
+      }
+
       //? separating user data
       req.user = {
         id: session.user.id,
@@ -54,6 +65,7 @@ const auth = (...roles: UserRole[]) => {
         name: session.user.name,
         role: session.user.role as string,
         emailVerified: session.user.emailVerified,
+        isActive: session.user.isActive as boolean,
       };
 
       if (roles.length && !roles.includes(req.user.role as UserRole)) {
