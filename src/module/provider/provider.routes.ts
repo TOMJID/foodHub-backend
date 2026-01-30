@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { ProviderController } from "./provider.controller";
+import auth from "../../middleware/auth.middleware";
 
 const router = Router();
 
 //? create new provider profile
-router.post("/", ProviderController.createProviderProfile);
+router.post("/", auth(), ProviderController.createProviderProfile);
 
 //? get all providers
 router.get("/", ProviderController.getAllProviders);

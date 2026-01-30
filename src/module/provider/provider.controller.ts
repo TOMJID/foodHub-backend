@@ -4,12 +4,27 @@ import { ProviderService } from "./provider.server";
 //? create new provider profile
 const createProviderProfile = async (req: Request, res: Response) => {
   try {
-    const result = await ProviderService.createProviderProfile(req.body);
-    res.status(201).json(result);
-  } catch (error) {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized: login or sighup first" });
+      return;
+    }
+
+    const result = await ProviderService.createProviderProfile({
+      ...req.body,
+      userId,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
     console.error(error);
     res.status(500).json({
-      error: "Failed to create provider profile",
+      success: false,
+      error: error.message || "Failed to create provider profile",
     });
   }
 };
@@ -22,14 +37,20 @@ const getProviderProfile = async (req: Request, res: Response) => {
       providerId as string,
     );
     if (!result) {
-      res.status(404).json({ error: "Provider profile not found" });
+      res
+        .status(404)
+        .json({ success: false, error: "Provider profile disen't exist" });
       return;
     }
-    res.json(result);
-  } catch (error) {
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
     console.error(error);
     res.status(500).json({
-      error: "Failed to retrieve provider profile",
+      success: false,
+      error: error.message || "Failed to retrieve provider profile",
     });
   }
 };
@@ -38,11 +59,15 @@ const getProviderProfile = async (req: Request, res: Response) => {
 const getAllProviders = async (req: Request, res: Response) => {
   try {
     const result = await ProviderService.getAllProviders();
-    res.json(result);
-  } catch (error) {
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
     console.error(error);
     res.status(500).json({
-      error: "Failed to retrieve providers",
+      success: false,
+      error: error.message || "Failed to retrieve providers",
     });
   }
 };

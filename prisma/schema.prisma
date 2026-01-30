@@ -21,10 +21,10 @@ model User {
 
   //! relations
   providerProfile ProviderProfile?
-  meals           Meal[]
   ordersPlaced    Order[]          @relation("CustomerOrders")
   ordersReceived  Order[]          @relation("ProviderOrders")
   reviews         Review[]
+  meals           Meal[]
 
   @@unique([email])
   @@map("user")
@@ -87,7 +87,8 @@ model ProviderProfile {
   coverImageUrl  String?
 
   //! relation to User table
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meals Meal[]
 
   @@map("provider_profile")
 }
@@ -116,10 +117,12 @@ model Meal {
   updatedAt   DateTime @updatedAt
 
   //! relations
-  provider   User        @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  category   Category    @relation(fields: [categoryId], references: [id])
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  category   Category        @relation(fields: [categoryId], references: [id])
   orderItems OrderItem[]
   reviews    Review[]
+  user       User?           @relation(fields: [userId], references: [id])
+  userId     String?
 
   @@map("meal")
 }
