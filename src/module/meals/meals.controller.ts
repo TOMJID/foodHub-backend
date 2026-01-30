@@ -46,7 +46,15 @@ export const createMeal = async (
 //? get all meals
 const getAllMeals = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const meals = await MealService.getAllMeals();
+    const { categoryId, minPrice, maxPrice, searchTerm } = req.query;
+
+    const meals = await MealService.getAllMeals({
+      categoryId: categoryId as string,
+      minPrice: minPrice ? Number(minPrice) : undefined,
+      maxPrice: maxPrice ? Number(maxPrice) : undefined,
+      searchTerm: searchTerm as string,
+    });
+
     res.json({
       success: true,
       data: meals,

@@ -12,8 +12,42 @@ const createMeal = async (data: MealUncheckedCreateInput) => {
 };
 
 //? get all meals
-const getAllMeals = async () => {
+const getAllMeals = async (filters: {
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  searchTerm?: string;
+}) => {
+  const { categoryId, minPrice, maxPrice, searchTerm } = filters;
+
+  const where: any = {
+    isAvailable: true,
+  };
+
+  if (categoryId) {
+    where.categoryId = categoryId;
+  }
+
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    where.price = {};
+    if (minPrice !== undefined) where.price.gte = minPrice;
+    if (maxPrice !== undefined) where.price.lte = maxPrice;
+  }
+
+  if (searchTerm) {
+    where.OR = [
+      { name: { contains: searchTerm, mode: "insensitive" } },
+      { description: { contains: searchTerm, mode: "insensitive" } },
+      {
+        category: {
+          name: { contains: searchTerm, mode: "insensitive" },
+        },
+      },
+    ];
+  }
+
   return await prisma.meal.findMany({
+    where,
     include: {
       category: true,
       provider: true,
@@ -35,7 +69,7 @@ const getMealById = async (id: string) => {
 //? get meals by provider
 const getMealsByProvider = async (providerId: string) => {
   return await prisma.meal.findMany({
-    where: { providerId },
+    where: { providerId, isAvailable: true },
     include: {
       category: true,
     },
