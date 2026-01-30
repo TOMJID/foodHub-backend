@@ -72,8 +72,73 @@ const getAllProviders = async (
   }
 };
 
+//? get my provider profile (for logged in provider)
+const getMyProviderProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const result = await ProviderService.getProviderProfileByUserId(userId);
+    if (!result) {
+      res
+        .status(404)
+        .json({ success: false, error: "Provider profile not found" });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+//? update provider profile
+const updateProviderProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const profile = await ProviderService.getProviderProfileByUserId(userId);
+    if (!profile) {
+      res.status(404).json({ success: false, error: "Profile not found" });
+      return;
+    }
+
+    const result = await ProviderService.updateProviderProfile(
+      profile.id,
+      req.body,
+    );
+
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error: any) {
+    next(error);
+  }
+};
+
 export const ProviderController = {
   createProviderProfile,
   getProviderProfile,
+  getMyProviderProfile,
   getAllProviders,
+  updateProviderProfile,
 };

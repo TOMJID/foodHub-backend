@@ -10,7 +10,13 @@ router.post("/", auth(), ProviderController.createProviderProfile);
 //? get all providers
 router.get("/", ProviderController.getAllProviders);
 
-//? get provider profile by user id
+//? get my provider profile
+router.get("/me", auth(), ProviderController.getMyProviderProfile);
+
+//? update my provider profile
+router.patch("/me", auth(), ProviderController.updateProviderProfile);
+
+//? get provider profile by provider id
 router.get("/:providerId", ProviderController.getProviderProfile);
 
 export const providerRoutes = router;

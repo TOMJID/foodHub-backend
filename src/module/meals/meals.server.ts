@@ -67,9 +67,17 @@ const getMealById = async (id: string) => {
 };
 
 //? get meals by provider
-const getMealsByProvider = async (providerId: string) => {
+const getMealsByProvider = async (
+  providerId: string,
+  includeUnavailable: boolean = false,
+) => {
+  const where: any = { providerId };
+  if (!includeUnavailable) {
+    where.isAvailable = true;
+  }
+
   return await prisma.meal.findMany({
-    where: { providerId, isAvailable: true },
+    where,
     include: {
       category: true,
     },

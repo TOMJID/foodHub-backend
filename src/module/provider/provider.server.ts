@@ -23,16 +23,71 @@ const createProviderProfile = async (
 const getProviderProfile = async (id: string) => {
   return await prisma.providerProfile.findUnique({
     where: { id },
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+      meals: {
+        where: { isAvailable: true }, // Only show available meals for public profile
+        include: {
+          category: true,
+        },
+      },
+    },
   });
 };
 
 //? get all providers
 const getAllProviders = async () => {
-  return await prisma.providerProfile.findMany();
+  return await prisma.providerProfile.findMany({
+    include: {
+      user: {
+        select: {
+          name: true,
+          image: true,
+        },
+      },
+    },
+  });
+};
+
+//? get provider profile by user id
+const getProviderProfileByUserId = async (userId: string) => {
+  return await prisma.providerProfile.findUnique({
+    where: { userId },
+    include: {
+      user: {
+        select: {
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+      meals: {
+        include: {
+          category: true,
+        },
+      },
+    },
+  });
+};
+
+//? update provider profile
+const updateProviderProfile = async (id: string, data: any) => {
+  return await prisma.providerProfile.update({
+    where: { id },
+    data,
+  });
 };
 
 export const ProviderService = {
   createProviderProfile,
   getProviderProfile,
+  getProviderProfileByUserId,
   getAllProviders,
+  updateProviderProfile,
 };
