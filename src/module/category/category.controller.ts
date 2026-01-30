@@ -1,47 +1,59 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { CategoryService } from "./category.server";
 
 //? create new category
-const createCategory = async (req: Request, res: Response) => {
+const createCategory = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const category = await CategoryService.createCategory(req.body);
-    res.status(201).json(category);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: "Failed to create category",
+    res.status(201).json({
+      success: true,
+      data: category,
     });
+  } catch (error: any) {
+    next(error);
   }
 };
 
 //? get all categories
-const getAllCategories = async (req: Request, res: Response) => {
+const getAllCategories = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const categories = await CategoryService.getAllCategories();
-    res.json(categories);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: "Failed to retrieve categories",
+    res.json({
+      success: true,
+      data: categories,
     });
+  } catch (error: any) {
+    next(error);
   }
 };
 
 //? get category by id
-const getCategoryById = async (req: Request, res: Response) => {
+const getCategoryById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const categoryId = req.params.categoryId as string;
     const category = await CategoryService.getCategoryById(categoryId);
     if (!category) {
-      res.status(404).json({ error: "Category not found" });
+      res.status(404).json({ success: false, error: "Category not found" });
       return;
     }
-    res.json(category);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      error: "Failed to retrieve category",
+    res.json({
+      success: true,
+      data: category,
     });
+  } catch (error: any) {
+    next(error);
   }
 };
 

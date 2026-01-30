@@ -5,6 +5,7 @@ import { auth } from "./lib/auth";
 import { mealRoutes } from "./module/meals/meals.routes";
 import { providerRoutes } from "./module/provider/provider.routes";
 import { categoryRoutes } from "./module/category/category.routes";
+import { globalErrorHandler } from "./middleware/error.middleware";
 
 const app: Application = express();
 
@@ -30,5 +31,8 @@ app.get("/", (req, res) => {
 app.use("/api/meals", mealRoutes);
 app.use("/api/providers", providerRoutes);
 app.use("/api/categories", categoryRoutes);
+
+//? Global Error Handler
+app.use(globalErrorHandler);
 
 export default app;

@@ -1,8 +1,12 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ProviderService } from "./provider.server";
 
 //? create new provider profile
-const createProviderProfile = async (req: Request, res: Response) => {
+const createProviderProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const userId = req.user?.id;
 
@@ -21,16 +25,16 @@ const createProviderProfile = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      error: error.message || "Failed to create provider profile",
-    });
+    next(error);
   }
 };
 
 //? get provider profile by provider id
-const getProviderProfile = async (req: Request, res: Response) => {
+const getProviderProfile = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const { providerId } = req.params;
     const result = await ProviderService.getProviderProfile(
@@ -47,16 +51,16 @@ const getProviderProfile = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      error: error.message || "Failed to retrieve provider profile",
-    });
+    next(error);
   }
 };
 
 //? get all providers
-const getAllProviders = async (req: Request, res: Response) => {
+const getAllProviders = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const result = await ProviderService.getAllProviders();
     res.json({
@@ -64,11 +68,7 @@ const getAllProviders = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      error: error.message || "Failed to retrieve providers",
-    });
+    next(error);
   }
 };
 

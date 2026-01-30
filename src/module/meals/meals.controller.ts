@@ -1,8 +1,12 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { MealService } from "./meals.server";
 import { prisma } from "../../lib/prisma";
 
-export const createMeal = async (req: Request, res: Response) => {
+export const createMeal = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const userId = req.user?.id;
 
@@ -34,11 +38,7 @@ export const createMeal = async (req: Request, res: Response) => {
       data: meal,
     });
   } catch (error: any) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      error: error.message || "Failed to create meal",
-    });
+    next(error);
   }
 };
 
