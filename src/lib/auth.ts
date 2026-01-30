@@ -20,6 +20,10 @@ export const auth = betterAuth({
         type: "boolean",
         defaultValue: true,
       },
+      address: {
+        type: "string",
+        required: false,
+      },
     },
   },
 

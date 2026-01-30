@@ -25,7 +25,7 @@ app.use(
 );
 
 //! better auth
-app.all("/api/auth/{*any}", toNodeHandler(auth));
+app.all("/api/auth/*", toNodeHandler(auth));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
