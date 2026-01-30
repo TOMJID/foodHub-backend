@@ -4,6 +4,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth";
 import { mealRoutes } from "./module/meals/meals.routes";
 import { providerRoutes } from "./module/provider/provider.routes";
+import { categoryRoutes } from "./module/category/category.routes";
 
 const app: Application = express();
 
@@ -25,7 +26,9 @@ app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
+//? api routes
 app.use("/api/meals", mealRoutes);
 app.use("/api/providers", providerRoutes);
+app.use("/api/categories", categoryRoutes);
 
 export default app;
