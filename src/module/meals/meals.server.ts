@@ -42,6 +42,7 @@ const getMealsByProvider = async (providerId: string) => {
   });
 };
 
+//? update meal
 const updateMeal = async (id: string, data: MealUncheckedUpdateInput) => {
   return await prisma.meal.update({
     where: { id },
@@ -49,6 +50,7 @@ const updateMeal = async (id: string, data: MealUncheckedUpdateInput) => {
   });
 };
 
+//? delete meal
 const deleteMeal = async (id: string) => {
   return await prisma.meal.delete({
     where: { id },

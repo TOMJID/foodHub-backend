@@ -22,9 +22,7 @@ model User {
   //! relations
   providerProfile ProviderProfile?
   ordersPlaced    Order[]          @relation("CustomerOrders")
-  ordersReceived  Order[]          @relation("ProviderOrders")
   reviews         Review[]
-  meals           Meal[]
 
   @@unique([email])
   @@map("user")
@@ -87,8 +85,9 @@ model ProviderProfile {
   coverImageUrl  String?
 
   //! relation to User table
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  meals Meal[]
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  meals  Meal[]
+  orders Order[]
 
   @@map("provider_profile")
 }
@@ -121,25 +120,31 @@ model Meal {
   category   Category        @relation(fields: [categoryId], references: [id])
   orderItems OrderItem[]
   reviews    Review[]
-  user       User?           @relation(fields: [userId], references: [id])
-  userId     String?
 
   @@map("meal")
 }
 
+enum OrderStatus {
+  placed
+  preparing
+  out_for_delivery
+  delivered
+  cancelled
+}
+
 model Order {
-  id              String   @id @default(uuid())
+  id              String      @id @default(uuid())
   customerId      String
   providerId      String
   deliveryAddress String
-  totalAmount     Decimal  @db.Decimal(10, 2)
-  status          String   @default("placed")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  status          OrderStatus @default(placed)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   //! relations
-  customer User        @relation("CustomerOrders", fields: [customerId], references: [id])
-  provider User        @relation("ProviderOrders", fields: [providerId], references: [id])
+  customer User            @relation("CustomerOrders", fields: [customerId], references: [id])
+  provider ProviderProfile @relation(fields: [providerId], references: [id])
   items    OrderItem[]
 
   @@map("order")

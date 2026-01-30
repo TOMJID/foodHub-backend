@@ -5,6 +5,8 @@ import { auth } from "./lib/auth";
 import { mealRoutes } from "./module/meals/meals.routes";
 import { providerRoutes } from "./module/provider/provider.routes";
 import { categoryRoutes } from "./module/category/category.routes";
+import { orderRoutes } from "./module/orders/orders.routes";
+import { reviewRoutes } from "./module/review/review.routes";
 import { globalErrorHandler } from "./middleware/error.middleware";
 
 const app: Application = express();
@@ -31,6 +33,8 @@ app.get("/", (req, res) => {
 app.use("/api/meals", mealRoutes);
 app.use("/api/providers", providerRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 //? Global Error Handler
 app.use(globalErrorHandler);

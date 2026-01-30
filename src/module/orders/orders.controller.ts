@@ -1,0 +1,154 @@
+import { NextFunction, Request, Response } from "express";
+import { OrderService } from "./orders.server";
+import { prisma } from "../../lib/prisma";
+import { OrderStatus } from "../../../generated/prisma/enums";
+
+//? User places an order
+const placeOrder = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const customerId = req.user?.id;
+    if (!customerId) {
+      res.status(401).json({ success: false, error: "Unauthorized" });
+      return;
+    }
+
+    const order = await OrderService.createOrder({
+      ...req.body,
+      customerId,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: order,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//? Get orders (based on role)
+const getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.id;
+    const role = req.user?.role;
+
+    if (!userId) {
+      res.status(401).json({ success: false, error: "Unauthorized" });
+      return;
+    }
+
+    let orders;
+    if (role === "ADMIN") {
+      orders = await OrderService.getAllOrders();
+    } else if (role === "provider") {
+      const profile = await prisma.providerProfile.findUnique({
+        where: { userId: userId as string },
+      });
+      if (!profile) {
+        res
+          .status(404)
+          .json({ success: false, error: "Provider profile not found" });
+        return;
+      }
+      orders = await OrderService.getOrdersForProvider(profile.id);
+    } else {
+      orders = await OrderService.getOrdersForCustomer(userId);
+    }
+
+    res.json({
+      success: true,
+      data: orders,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//? Update status (Provider or Admin only)
+const updateStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { orderId } = req.params;
+    const { status } = req.body;
+    const userId = req.user?.id;
+    const role = req.user?.role;
+
+    const order = await OrderService.getOrderById(orderId as string);
+    if (!order) {
+      res.status(404).json({ success: false, error: "Order not found" });
+      return;
+    }
+
+    //? Authorization check
+    if (role !== "ADMIN") {
+      const profile = await prisma.providerProfile.findUnique({
+        where: { userId: userId as string },
+      });
+      if (!profile || order.providerId !== profile.id) {
+        res.status(403).json({
+          success: false,
+          error: "Forbidden: You don't own this restaurant",
+        });
+        return;
+      }
+    }
+
+    const updatedOrder = await OrderService.updateOrderStatus(
+      orderId as string,
+      status as OrderStatus,
+    );
+    res.json({
+      success: true,
+      data: updatedOrder,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const getOrderById = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user?.id;
+    const role = req.user?.role;
+
+    const order = await OrderService.getOrderById(orderId as string);
+    if (!order) {
+      res.status(404).json({ success: false, error: "Order not found" });
+      return;
+    }
+
+    //? Authorization check: Admin, the Provider who received it, or the Customer who placed it
+    if (role !== "ADMIN" && order.customerId !== userId) {
+      const profile = await prisma.providerProfile.findUnique({
+        where: { userId: userId as string },
+      });
+      if (!profile || order.providerId !== profile.id) {
+        res.status(403).json({
+          success: false,
+          error: "Forbidden: You are not authorized to view this order",
+        });
+        return;
+      }
+    }
+
+    res.json({
+      success: true,
+      data: order,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const OrderController = {
+  placeOrder,
+  getMyOrders,
+  getOrderById,
+  updateStatus,
+};
