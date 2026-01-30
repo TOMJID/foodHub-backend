@@ -4,6 +4,7 @@ import { MealService } from "./meals.server";
 export const createMeal = async (req: Request, res: Response) => {
   try {
     const meal = await MealService.createMeal(req.body);
+    console.log(req.user);
     res.status(201).json(meal);
   } catch (error) {
     console.error(error);
