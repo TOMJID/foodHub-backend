@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { MealService } from "./meals.server";
 import { prisma } from "../../lib/prisma";
 
+//? create meal
 export const createMeal = async (
   req: Request,
   res: Response,
@@ -42,6 +43,144 @@ export const createMeal = async (
   }
 };
 
+//? get all meals
+const getAllMeals = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const meals = await MealService.getAllMeals();
+    res.json({
+      success: true,
+      data: meals,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//? get meal by id
+const getMealById = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const meal = await MealService.getMealById(id as string);
+    if (!meal) {
+      res.status(404).json({ success: false, error: "Meal not found" });
+      return;
+    }
+    res.json({
+      success: true,
+      data: meal,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//? update meal
+const updateMeal = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const existingMeal = await MealService.getMealById(id as string);
+    if (!existingMeal) {
+      res.status(404).json({ success: false, error: "Meal not found" });
+      return;
+    }
+
+    //? Check ownership if not admin
+    if (userRole !== "ADMIN") {
+      const providerProfile = await prisma.providerProfile.findUnique({
+        where: { userId: userId as string },
+      });
+      if (!providerProfile || existingMeal.providerId !== providerProfile.id) {
+        res.status(403).json({
+          success: false,
+          error: "Forbidden: You don't own this meal",
+        });
+        return;
+      }
+    }
+
+    const updatedMeal = await MealService.updateMeal(id as string, req.body);
+    res.json({
+      success: true,
+      data: updatedMeal,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//? get meals by provider
+const getMealsByProvider = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { providerId } = req.params;
+    const meals = await MealService.getMealsByProvider(providerId as string);
+    res.json({
+      success: true,
+      data: meals,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+//? delete meal
+const deleteMeal = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+
+    if (!userId) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    const existingMeal = await MealService.getMealById(id as string);
+    if (!existingMeal) {
+      res.status(404).json({ success: false, error: "Meal not found" });
+      return;
+    }
+
+    //? Check ownership if not admin
+    if (userRole !== "ADMIN") {
+      const providerProfile = await prisma.providerProfile.findUnique({
+        where: { userId: userId as string },
+      });
+      if (!providerProfile || existingMeal.providerId !== providerProfile.id) {
+        res.status(403).json({
+          success: false,
+          error: "Forbidden: You don't own this meal",
+        });
+        return;
+      }
+    }
+
+    await MealService.deleteMeal(id as string);
+    res.json({
+      success: true,
+      message: "Meal deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const MealController = {
   createMeal,
+  getAllMeals,
+  getMealById,
+  getMealsByProvider,
+  updateMeal,
+  deleteMeal,
 };
