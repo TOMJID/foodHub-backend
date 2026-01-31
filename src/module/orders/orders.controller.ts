@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { OrderService } from "./orders.server";
 import { prisma } from "../../lib/prisma";
 import { OrderStatus } from "../../../generated/prisma/enums";
+import { UserRole } from "../../middleware/auth.middleware";
 
 //? User places an order
 const placeOrder = async (req: Request, res: Response, next: NextFunction) => {
@@ -38,9 +39,9 @@ const getMyOrders = async (req: Request, res: Response, next: NextFunction) => {
     }
 
     let orders;
-    if (role === "ADMIN") {
+    if (role === UserRole.ADMIN) {
       orders = await OrderService.getAllOrders();
-    } else if (role === "provider") {
+    } else if (role === UserRole.PROVIDER) {
       const profile = await prisma.providerProfile.findUnique({
         where: { userId: userId as string },
       });
@@ -83,7 +84,7 @@ const updateStatus = async (
     }
 
     //? Authorization check
-    if (role !== "ADMIN") {
+    if (role !== UserRole.ADMIN) {
       const profile = await prisma.providerProfile.findUnique({
         where: { userId: userId as string },
       });
@@ -125,7 +126,7 @@ const getOrderById = async (
     }
 
     //? Authorization check: Admin, the Provider who received it, or the Customer who placed it
-    if (role !== "ADMIN" && order.customerId !== userId) {
+    if (role !== UserRole.ADMIN && order.customerId !== userId) {
       const profile = await prisma.providerProfile.findUnique({
         where: { userId: userId as string },
       });
