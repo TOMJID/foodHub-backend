@@ -146,9 +146,60 @@ const getOrderById = async (
     next(error);
   }
 };
+//? Customer cancels their own order (only if status is "placed")
+const cancelOrder = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      res.status(401).json({ success: false, error: "Unauthorized" });
+      return;
+    }
+
+    const order = await OrderService.getOrderById(orderId as string);
+    if (!order) {
+      res.status(404).json({ success: false, error: "Order not found" });
+      return;
+    }
+
+    //? Only the customer who placed the order can cancel it
+    if (order.customerId !== userId) {
+      res.status(403).json({
+        success: false,
+        error: "Forbidden: You can only cancel your own orders",
+      });
+      return;
+    }
+
+    //? Can only cancel if status is "placed"
+    if (order.status !== "placed") {
+      res.status(400).json({
+        success: false,
+        error: "Cannot cancel order: Kitchen has already started preparing",
+      });
+      return;
+    }
+
+    const cancelledOrder = await OrderService.updateOrderStatus(
+      orderId as string,
+      OrderStatus.cancelled,
+    );
+
+    res.json({
+      success: true,
+      data: cancelledOrder,
+      message: "Order cancelled successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const OrderController = {
   placeOrder,
   getMyOrders,
   getOrderById,
   updateStatus,
+  cancelOrder,
 };

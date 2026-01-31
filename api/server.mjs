@@ -1275,11 +1275,52 @@ var getOrderById2 = async (req, res, next) => {
     next(error);
   }
 };
+var cancelOrder = async (req, res, next) => {
+  try {
+    const { orderId } = req.params;
+    const userId = req.user?.id;
+    if (!userId) {
+      res.status(401).json({ success: false, error: "Unauthorized" });
+      return;
+    }
+    const order = await OrderService.getOrderById(orderId);
+    if (!order) {
+      res.status(404).json({ success: false, error: "Order not found" });
+      return;
+    }
+    if (order.customerId !== userId) {
+      res.status(403).json({
+        success: false,
+        error: "Forbidden: You can only cancel your own orders"
+      });
+      return;
+    }
+    if (order.status !== "placed") {
+      res.status(400).json({
+        success: false,
+        error: "Cannot cancel order: Kitchen has already started preparing"
+      });
+      return;
+    }
+    const cancelledOrder = await OrderService.updateOrderStatus(
+      orderId,
+      OrderStatus.cancelled
+    );
+    res.json({
+      success: true,
+      data: cancelledOrder,
+      message: "Order cancelled successfully"
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 var OrderController = {
   placeOrder,
   getMyOrders,
   getOrderById: getOrderById2,
-  updateStatus
+  updateStatus,
+  cancelOrder
 };
 
 // src/module/orders/orders.routes.ts
@@ -1292,6 +1333,7 @@ router4.patch(
   auth_middleware_default("provider" /* PROVIDER */, "admin" /* ADMIN */),
   OrderController.updateStatus
 );
+router4.patch("/cancel/:orderId", auth_middleware_default(), OrderController.cancelOrder);
 var orderRoutes = router4;
 
 // src/module/review/review.routes.ts

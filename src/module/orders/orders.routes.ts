@@ -20,4 +20,7 @@ router.patch(
   OrderController.updateStatus,
 );
 
+//? Customer cancels their own order
+router.patch("/cancel/:orderId", auth(), OrderController.cancelOrder);
+
 export const orderRoutes = router;
