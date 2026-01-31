@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "seed:admin": "tsx seed_admin.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "prisma generate && tsup",
+    "postinstall": "prisma generate"
   },
   "type": "module",
   "keywords": [],
@@ -21,6 +22,7 @@
     "@types/pg": "^8.16.0",
     "dotenv": "^17.2.3",
     "prisma": "^7.3.0",
+    "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
