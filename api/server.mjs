@@ -976,10 +976,16 @@ var getCategoryById = async (id) => {
     where: { id }
   });
 };
+var deleteCategory = async (id) => {
+  return await prisma.category.delete({
+    where: { id }
+  });
+};
 var CategoryService = {
   createCategory,
   getAllCategories,
-  getCategoryById
+  getCategoryById,
+  deleteCategory
 };
 
 // src/module/category/category.controller.ts
@@ -1021,10 +1027,23 @@ var getCategoryById2 = async (req, res, next) => {
     next(error);
   }
 };
+var deleteCategory2 = async (req, res, next) => {
+  try {
+    const categoryId = req.params.categoryId;
+    await CategoryService.deleteCategory(categoryId);
+    res.json({
+      success: true,
+      message: "Category deleted successfully"
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 var CategoryController = {
   createCategory: createCategory2,
   getAllCategories: getAllCategories2,
-  getCategoryById: getCategoryById2
+  getCategoryById: getCategoryById2,
+  deleteCategory: deleteCategory2
 };
 
 // src/module/category/category.routes.ts
@@ -1032,6 +1051,11 @@ var router3 = Router3();
 router3.post("/", auth_middleware_default("admin" /* ADMIN */), CategoryController.createCategory);
 router3.get("/", CategoryController.getAllCategories);
 router3.get("/:categoryId", CategoryController.getCategoryById);
+router3.delete(
+  "/:categoryId",
+  auth_middleware_default("admin" /* ADMIN */),
+  CategoryController.deleteCategory
+);
 var categoryRoutes = router3;
 
 // src/module/orders/orders.routes.ts
@@ -1655,32 +1679,7 @@ app.use(
     credentials: true
   })
 );
-app.use("/api/auth", (req, res, next) => {
-  console.log(`[AUTH DEBUG] ${req.method} ${req.url}`);
-  console.log(`[AUTH DEBUG] Host: ${req.headers.host}`);
-  console.log(`[AUTH DEBUG] Origin: ${req.headers.origin}`);
-  console.log(
-    `[AUTH DEBUG] X-Forwarded-Proto: ${req.headers["x-forwarded-proto"]}`
-  );
-  next();
-});
 app.all("/api/auth/*any", toNodeHandler(auth));
-app.get("/api/debug-auth", (req, res) => {
-  res.json({
-    env: {
-      FRONTEND_URL: process.env.FRONTEND_URL,
-      BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
-      NODE_ENV: process.env.NODE_ENV
-    },
-    headers: {
-      host: req.headers.host,
-      origin: req.headers.origin,
-      referer: req.headers.referer,
-      "x-forwarded-proto": req.headers["x-forwarded-proto"]
-    },
-    cookies: req.headers.cookie
-  });
-});
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
