@@ -1188,9 +1188,9 @@ var getMyOrders = async (req, res, next) => {
       return;
     }
     let orders;
-    if (role === "ADMIN") {
+    if (role === "admin" /* ADMIN */) {
       orders = await OrderService.getAllOrders();
-    } else if (role === "provider") {
+    } else if (role === "provider" /* PROVIDER */) {
       const profile = await prisma.providerProfile.findUnique({
         where: { userId }
       });
@@ -1221,7 +1221,7 @@ var updateStatus = async (req, res, next) => {
       res.status(404).json({ success: false, error: "Order not found" });
       return;
     }
-    if (role !== "ADMIN") {
+    if (role !== "admin" /* ADMIN */) {
       const profile = await prisma.providerProfile.findUnique({
         where: { userId }
       });
@@ -1255,7 +1255,7 @@ var getOrderById2 = async (req, res, next) => {
       res.status(404).json({ success: false, error: "Order not found" });
       return;
     }
-    if (role !== "ADMIN" && order.customerId !== userId) {
+    if (role !== "admin" /* ADMIN */ && order.customerId !== userId) {
       const profile = await prisma.providerProfile.findUnique({
         where: { userId }
       });
