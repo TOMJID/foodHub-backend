@@ -1,3 +1,4 @@
+import "dotenv/config";
 import app from "./app";
 import { prisma } from "./lib/prisma";
 
@@ -19,3 +20,5 @@ async function main() {
 }
 
 main();
+
+export default app;
