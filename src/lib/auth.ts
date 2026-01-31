@@ -20,6 +20,17 @@ export const auth = betterAuth({
   }),
 
   trustedOrigins: [process.env.FRONTEND_URL!],
+  advanced: {
+    cookiePrefix: "foodhub",
+    useSecureCookies: true,
+  },
+  cookie: {
+    namePrefix: "foodhub",
+    attributes: {
+      sameSite: "none",
+      secure: true,
+    },
+  },
 
   //? Extending the User Model
   user: {
