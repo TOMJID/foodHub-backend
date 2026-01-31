@@ -277,7 +277,18 @@ var auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql"
   }),
+  baseURL: process.env.BETTER_AUTH_URL,
   trustedOrigins: [process.env.FRONTEND_URL],
+  cookie: {
+    namePrefix: "foodhub",
+    attributes: {
+      sameSite: "none",
+      secure: true
+    }
+  },
+  advanced: {
+    useSecureCookies: true
+  },
   //? Extending the User Model
   user: {
     additionalFields: {
@@ -293,6 +304,12 @@ var auth = betterAuth({
         type: "string",
         required: false
       }
+    }
+  },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET
     }
   },
   //? Email and password config
@@ -1623,14 +1640,47 @@ var globalErrorHandler = (err, req, res, next) => {
 
 // src/app.ts
 var app = express();
+app.set("trust proxy", 1);
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: (origin, callback) => {
+      const allowed = process.env.FRONTEND_URL?.replace(/\/$/, "");
+      if (!origin || origin.replace(/\/$/, "") === allowed) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true
   })
 );
+app.use("/api/auth", (req, res, next) => {
+  console.log(`[AUTH DEBUG] ${req.method} ${req.url}`);
+  console.log(`[AUTH DEBUG] Host: ${req.headers.host}`);
+  console.log(`[AUTH DEBUG] Origin: ${req.headers.origin}`);
+  console.log(
+    `[AUTH DEBUG] X-Forwarded-Proto: ${req.headers["x-forwarded-proto"]}`
+  );
+  next();
+});
 app.all("/api/auth/*any", toNodeHandler(auth));
+app.get("/api/debug-auth", (req, res) => {
+  res.json({
+    env: {
+      FRONTEND_URL: process.env.FRONTEND_URL,
+      BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+      NODE_ENV: process.env.NODE_ENV
+    },
+    headers: {
+      host: req.headers.host,
+      origin: req.headers.origin,
+      referer: req.headers.referer,
+      "x-forwarded-proto": req.headers["x-forwarded-proto"]
+    },
+    cookies: req.headers.cookie
+  });
+});
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -1666,5 +1716,6 @@ export {
   server_default as default
 };
 //! Calculate total amount and verify meals
+//! Trust proxy for secure cookies on Vercel
 //! CROS setup
 //! better auth
