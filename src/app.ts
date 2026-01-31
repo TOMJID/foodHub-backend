@@ -35,34 +35,8 @@ app.use(
 );
 
 //! better auth
-app.use("/api/auth", (req, res, next) => {
-  console.log(`[AUTH DEBUG] ${req.method} ${req.url}`);
-  console.log(`[AUTH DEBUG] Host: ${req.headers.host}`);
-  console.log(`[AUTH DEBUG] Origin: ${req.headers.origin}`);
-  console.log(
-    `[AUTH DEBUG] X-Forwarded-Proto: ${req.headers["x-forwarded-proto"]}`,
-  );
-  next();
-});
 
 app.all("/api/auth/*any", toNodeHandler(auth));
-
-app.get("/api/debug-auth", (req, res) => {
-  res.json({
-    env: {
-      FRONTEND_URL: process.env.FRONTEND_URL,
-      BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
-      NODE_ENV: process.env.NODE_ENV,
-    },
-    headers: {
-      host: req.headers.host,
-      origin: req.headers.origin,
-      referer: req.headers.referer,
-      "x-forwarded-proto": req.headers["x-forwarded-proto"],
-    },
-    cookies: req.headers.cookie,
-  });
-});
 
 app.get("/", (req, res) => {
   res.send("Hello!");
