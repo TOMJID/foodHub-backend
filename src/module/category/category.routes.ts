@@ -13,4 +13,11 @@ router.get("/", CategoryController.getAllCategories);
 //? get category by id
 router.get("/:categoryId", CategoryController.getCategoryById);
 
+//? delete category
+router.delete(
+  "/:categoryId",
+  auth(UserRole.ADMIN),
+  CategoryController.deleteCategory,
+);
+
 export const categoryRoutes = router;
