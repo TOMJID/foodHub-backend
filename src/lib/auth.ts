@@ -39,6 +39,13 @@ export const auth = betterAuth({
     },
   },
 
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    },
+  },
+
   //? Email and password config
   emailAndPassword: {
     enabled: true,
