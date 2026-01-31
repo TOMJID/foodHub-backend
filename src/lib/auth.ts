@@ -116,6 +116,9 @@ export const auth = betterAuth({
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url, token }, request) => {
+      if (process.env.NODE_ENV === "seeding") {
+        return;
+      }
       try {
         const verificationUrl = `${process.env.FRONTEND_URL!}/verify-email?token=${token}`;
 

@@ -1,29 +1,52 @@
 import "dotenv/config";
 import { prisma } from "./src/lib/prisma";
+import { auth } from "./src/lib/auth";
 
 async function main() {
+  process.env.NODE_ENV = "seeding";
   console.log("***  Seeding Admin User...  ***");
 
   const adminEmail = process.env.ADMIN_EMAIL || "admin@foodhub.com";
+  const adminPassword = process.env.ADMIN_PASS || "admin123";
+  const adminName = process.env.ADMIN_NAME || "System Admin";
 
-  const user = await prisma.user.upsert({
+  // Check if user exists
+  const existingUser = await prisma.user.findUnique({
     where: { email: adminEmail },
-    update: {
+  });
+
+  if (!existingUser) {
+    console.log(`*** Creating new admin user: ${adminEmail} ***`);
+    try {
+      await auth.api.signUpEmail({
+        body: {
+          email: adminEmail,
+          password: adminPassword,
+          name: adminName,
+        },
+      });
+      console.log("*** User created sucessfully ***.");
+    } catch (error: any) {
+      console.error("***Error creating admin account: ", error.message, "***");
+    }
+  } else {
+    console.log(
+      `*** User ${adminEmail} already exists. Updating to ADMIN role...`,
+    );
+  }
+
+  //! ensure user has admin role and is verified in the database
+  await prisma.user.update({
+    where: { email: adminEmail },
+    data: {
       role: "admin",
       isActive: true,
       emailVerified: true,
-    },
-    create: {
-      id: "admin-user-id",
-      name: "System Admin",
-      email: adminEmail,
-      role: "admin",
-      isActive: true,
-      emailVerified: true,
+      name: adminName,
     },
   });
 
-  console.log(`*** User ${adminEmail} has been created/updated as ADMIN ***`);
+  console.log(`*** User ${adminEmail} is now an ADMIN ***`);
 }
 
 main()
