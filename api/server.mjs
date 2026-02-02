@@ -13,7 +13,7 @@ import cors from "cors";
 import { toNodeHandler } from "better-auth/node";
 
 // src/lib/auth.ts
-import { betterAuth } from "better-auth";
+import { betterAuth, APIError } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 
 // src/lib/prisma.ts
@@ -448,6 +448,19 @@ var auth = betterAuth({
         console.error("Email sending failed:", error.message);
         throw error;
       }
+    }
+  },
+  hooks: {
+    after: async (ctx) => {
+      if (ctx.path === "/sign-in/email" || ctx.path.startsWith("/callback/")) {
+        const session = ctx.context.newSession;
+        if (session && session.user && session.user.isActive === false) {
+          throw new APIError("FORBIDDEN", {
+            message: "Your account has been suspended. Please contact administration."
+          });
+        }
+      }
+      return ctx;
     }
   }
 });
@@ -1500,10 +1513,16 @@ var getAllUsers = async () => {
   });
 };
 var updateUserStatus = async (userId, isActive) => {
-  return await prisma.user.update({
+  const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: { isActive }
   });
+  if (!isActive) {
+    await prisma.session.deleteMany({
+      where: { userId }
+    });
+  }
+  return updatedUser;
 };
 var getPlatformStats = async () => {
   const [userCount, providerCount, mealCount, orderCount, totalRevenue] = await Promise.all([

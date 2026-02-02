@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { betterAuth, APIError } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { prisma } from "./prisma";
 import nodemailer from "nodemailer";
@@ -201,6 +201,24 @@ export const auth = betterAuth({
         console.error("Email sending failed:", error.message);
         throw error;
       }
+    },
+  },
+  hooks: {
+    after: async (ctx: any) => {
+      if (ctx.path === "/sign-in/email" || ctx.path.startsWith("/callback/")) {
+        const session = ctx.context.newSession;
+        if (
+          session &&
+          session.user &&
+          (session.user as any).isActive === false
+        ) {
+          throw new APIError("FORBIDDEN", {
+            message:
+              "Your account has been suspended. Please contact administration.",
+          });
+        }
+      }
+      return ctx;
     },
   },
 });

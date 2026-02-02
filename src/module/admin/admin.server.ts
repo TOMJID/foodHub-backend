@@ -14,10 +14,19 @@ const getAllUsers = async () => {
 
 //? Update user status (Active/Suspended)
 const updateUserStatus = async (userId: string, isActive: boolean) => {
-  return await prisma.user.update({
+  const updatedUser = await prisma.user.update({
     where: { id: userId },
     data: { isActive },
   });
+
+  //? If user is suspended, revoke all active sessions
+  if (!isActive) {
+    await prisma.session.deleteMany({
+      where: { userId },
+    });
+  }
+
+  return updatedUser;
 };
 
 //? Get Platform Statistics
